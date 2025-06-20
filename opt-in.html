@@ -1,13 +1,73 @@
-<meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Opt-In for The Forest of Disconnect</title> <style> body { font-family: Arial, sans-serif; max-width: 600px; margin: 20px auto; padding: 20px; line-height: 1.6; } .consent { margin: 20px 0; } input[type="tel"] { width: 200px; padding: 5px; } button { padding: 5px 10px; } #success { color: green; display: none; } #error { color: red; display: none; } </style>
-Opt-In for The Forest of Disconnect
-Welcome to *The Forest of Disconnect*, an interactive journey. By providing your phone number below, you agree to receive SMS updates, reflections, and audio notifications related to the story and its development. Messages may include chapter releases and interactive prompts.
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Opt-In for The Forest of Disconnect</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 20px auto; padding: 20px; line-height: 1.6; }
+        .consent { margin: 20px 0; }
+        input[type="tel"] { width: 200px; padding: 5px; margin-right: 10px; }
+        button { padding: 5px 10px; }
+        #success { color: green; display: none; margin-top: 10px; }
+        #error { color: red; display: none; margin-top: 10px; }
+        .export-btn { margin-left: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Opt-In for The Forest of Disconnect</h1>
+    <p>Welcome to <em>The Forest of Disconnect</em>, an interactive journey. By providing your phone number below, you agree to receive SMS updates, reflections, and audio notifications related to the story and its development. Messages may include chapter releases and interactive prompts.</p>
+    <p><strong>Consent:</strong> I agree to receive SMS messages from <em>The Forest of Disconnect</em>. I understand I can opt out at any time by replying <strong>STOP</strong> to any message. Message and data rates may apply.</p>
+    <form id="opt-in-form" onsubmit="handleSubmit(event)">
+        <div class="consent">
+            <input type="checkbox" id="consent" name="consent" required>
+            <label for="consent">I consent to receive SMS messages as described above.</label>
+        </div>
+        <label for="phone">Phone Number:</label>
+        <input type="tel" id="phone" name="phone" placeholder="+1XXXXXXXXXX" required pattern="\+1[0-9]{10}">
+        <button type="submit">Submit</button>
+    </form>
+    <div id="success">Thank you for opting in! Your data is stored locally for now. <button class="export-btn" onclick="exportOptIns()">Export Data</button></div>
+    <div id="error">Invalid input. Please provide a valid phone number and consent.</div>
+    <p>For privacy details, visit our <a href="https://ratwalster.github.io/TheForestOfDisconnect/privacy.html">Privacy Policy</a>.</p>
 
-Consent: I agree to receive SMS messages from *The Forest of Disconnect*. I understand I can opt out at any time by replying STOP to any message. Message and data rates may apply.
+    <script>
+        function handleSubmit(event) {
+            event.preventDefault();
+            console.log('Form submission prevented, processing locally');
+            const phone = document.getElementById('phone').value;
+            const consent = document.getElementById('consent').checked;
+            const errorDiv = document.getElementById('error');
+            const successDiv = document.getElementById('success');
 
- I consent to receive SMS messages as described above.
-Phone Number:  <button type="submit">Submit</button>
-Thank you for opting in! Your data is stored locally for now. <button onclick="exportOptIns()">Export Data</button>
-Invalid input. Please provide a valid phone number and consent.
-For privacy details, visit our Privacy Policy.
+            if (consent && phone.match(/^\+1[0-9]{10}$/)) {
+                const optIns = JSON.parse(localStorage.getItem('optIns') || '[]');
+                optIns.push({ phone, timestamp: new Date().toISOString(), consented: true });
+                localStorage.setItem('optIns', JSON.stringify(optIns));
+                document.getElementById('opt-in-form').style.display = 'none';
+                errorDiv.style.display = 'none';
+                successDiv.style.display = 'block';
+                console.log('Opt-in stored:', optIns);
+            } else {
+                errorDiv.style.display = 'block';
+                successDiv.style.display = 'none';
+            }
+        }
 
-<script> function handleSubmit(event) { event.preventDefault(); // Explicitly prevent form submission console.log('Form submission prevented, processing locally'); const phone = document.getElementById('phone').value; const consent = document.getElementById('consent').checked; const errorDiv = document.getElementById('error'); const successDiv = document.getElementById('success'); if (consent && phone.match(/^\+1[0-9]{10}$/)) { const optIns = JSON.parse(localStorage.getItem('optIns') || '[]'); optIns.push({ phone, timestamp: new Date().toISOString(), consented: true }); localStorage.setItem('optIns', JSON.stringify(optIns)); document.getElementById('opt-in-form').style.display = 'none'; errorDiv.style.display = 'none'; successDiv.style.display = 'block'; console.log('Opt-in stored:', optIns); } else { errorDiv.style.display = 'block'; successDiv.style.display = 'none'; } } function exportOptIns() { const optIns = JSON.parse(localStorage.getItem('optIns') || '[]'); if (optIns.length > 0) { const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(optIns)); const downloadAnchor = document.createElement('a'); downloadAnchor.setAttribute('href', dataStr); downloadAnchor.setAttribute('download', 'optins.json'); document.body.appendChild(downloadAnchor); downloadAnchor.click(); document.body.removeChild(downloadAnchor); } else { alert('No opt-in data to export.'); } } </script>
+        function exportOptIns() {
+            const optIns = JSON.parse(localStorage.getItem('optIns') || '[]');
+            if (optIns.length > 0) {
+                const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(optIns));
+                const downloadAnchor = document.createElement('a');
+                downloadAnchor.setAttribute('href', dataStr);
+                downloadAnchor.setAttribute('download', 'optins.json');
+                document.body.appendChild(downloadAnchor);
+                downloadAnchor.click();
+                document.body.removeChild(downloadAnchor);
+            } else {
+                alert('No opt-in data to export.');
+            }
+        }
+    </script>
+</body>
+</html>
