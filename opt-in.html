@@ -1,66 +1,12 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
+<meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Opt-In for The Forest of Disconnect</title> <style> body { font-family: Arial, sans-serif; max-width: 600px; margin: 20px auto; padding: 20px; line-height: 1.6; } .consent { margin: 20px 0; } input[type="tel"] { width: 200px; padding: 5px; } button { padding: 5px 10px; } #success { color: green; display: none; } </style>
+Opt-In for The Forest of Disconnect
+Welcome to *The Forest of Disconnect*, an interactive journey. By providing your phone number below, you agree to receive SMS updates, reflections, and audio notifications related to the story and its development. Messages may include chapter releases and interactive prompts.
 
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
+Consent: I agree to receive SMS messages from *The Forest of Disconnect*. I understand I can opt out at any time by replying STOP to any message. Message and data rates may apply.
 
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
+ I consent to receive SMS messages as described above.
+Phone Number:  <button type="submit">Submit</button>
+Thank you for opting in! Your data is stored.
+For privacy details, visit our Privacy Policy.
 
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!DOCTYPE html>
-   <html lang="en">
-   <head>
-       <meta charset="UTF-8">
-       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-       <title>Opt-In for The Forest of Disconnect</title>
-       <style>
-           body { font-family: Arial, sans-serif; max-width: 600px; margin: 20px auto; padding: 20px; }
-           .consent { margin: 20px 0; }
-       </style>
-   </head>
-   <body>
-       <h1>Opt-In for The Forest of Disconnect</h1>
-       <p>Welcome to *The Forest of Disconnect*, an interactive journey. By providing your phone number below, you agree to receive SMS updates, reflections, and notifications related to the story and its development. Messages may include chapter releases and interactive prompts.</p>
-       <p><strong>Consent:</strong> I agree to receive SMS messages from *The Forest of Disconnect*. I understand I can opt out at any time by replying STOP to any message. Message and data rates may apply.</p>
-       <form action="/submit-opt-in" method="POST" onsubmit="return confirm('Are you sure you want to opt in?');">
-           <div class="consent">
-               <input type="checkbox" id="consent" name="consent" required>
-               <label for="consent">I consent to receive SMS messages as described above.</label>
-           </div>
-           <label for="phone">Phone Number:</label>
-           <input type="tel" id="phone" name="phone" placeholder="+1XXXXXXXXXX" required pattern="\+1[0-9]{10}">
-           <button type="submit">Submit</button>
-       </form>
-       <p>For privacy details, visit our <a href="https://ratwalster.github.io/TheForestOfDisconnect/privacy.html">Privacy Policy</a>.</p>
-   </body>
-   </html>
+<script> function handleSubmit(event) { event.preventDefault(); const phone = document.getElementById('phone').value; if (document.getElementById('consent').checked && phone.match(/^\+1[0-9]{10}$/)) { const optIns = JSON.parse(localStorage.getItem('optIns') || '[]'); optIns.push({ phone, timestamp: new Date().toISOString(), consented: true }); localStorage.setItem('optIns', JSON.stringify(optIns)); document.getElementById('opt-in-form').style.display = 'none'; document.getElementById('success').style.display = 'block'; console.log('Opt-in stored:', optIns); // Future: Send to Twilio API here } else { alert('Invalid input. Please provide a valid phone number and consent.'); } } // Export data (for manual review) window.exportOptIns = function() { const optIns = JSON.parse(localStorage.getItem('optIns') || '[]'); const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(optIns)); const downloadAnchor = document.createElement('a'); downloadAnchor.setAttribute('href', dataStr); downloadAnchor.setAttribute('download', 'optins.json'); document.body.appendChild(downloadAnchor); downloadAnchor.click(); document.body.removeChild(downloadAnchor); }; </script>
