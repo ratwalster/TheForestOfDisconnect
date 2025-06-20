@@ -38,52 +38,52 @@
         return gk_fileData[filename] || "";
         }
         </script><!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Forest of Disconnect</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
-    <script src="characters.js" defer></script>
-    <script src="sketch.js" defer></script>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-    <div id="app-container">
-        <aside id="character-menu"></aside>
-        <main id="app-content">
-            <h1>The Forest of Disconnect Journey</h1>
-            <div id="navigation">
-                <button id="prev-btn">Previous</button>
-                <button id="next-btn">Next</button>
-            </div>
-            <div id="story-nodes">
-                <img src="lina.svg" alt="Lina" class="character-node" data-audio="audio/chapter_1_lina.mp3">
-                <img src="kai.svg" alt="Kai" class="character-node" data-audio="audio/chapter_2_kai.mp3">
-                <img src="mara.svg" alt="Mara" class="character-node" data-audio="audio/chapter_3_mara.mp3">
-                <img src="tomas.svg" alt="Tomas" class="character-node" data-audio="audio/chapter_4_tomas.mp3">
-                <img src="eli.svg" alt="Eli" class="character-node" data-audio="audio/chapter_5_eli.mp3">
-                <img src="sana.svg" alt="Sana" class="character-node" data-audio="audio/chapter_6_sana.mp3">
-                <img src="narrator.svg" alt="Narrator" class="character-node" data-audio="audio/narration_intro.mp3">
-            </div>
-            <section id="reflection-stop" style="display: none;">
-                <h2>Reflection Stop</h2>
-                <p>Why might the travelers hesitate to enter the Forest? Share your thoughts.</p>
-                <button id="continue-btn">Continue Journey</button>
-            </section>
-            <p id="story-text">Embark on an interactive journey to find connection. Click a character to hear their story.</p>
-        </main>
-    </div>
-    <script>
-        document.getElementById('prev-btn').addEventListener('click', () => alert('Previous chapter'));
-        document.getElementById('next-btn').addEventListener('click', () => {
-            document.getElementById('reflection-stop').style.display = 'block';
-            document.getElementById('story-text').style.display = 'none';
-        });
-        document.getElementById('continue-btn').addEventListener('click', () => {
-            document.getElementById('reflection-stop').style.display = 'none';
-            document.getElementById('story-text').style.display = 'block';
-        });
-    </script>
-</body>
-</html>
+   <html lang="en">
+   <head>
+       <meta charset="UTF-8">
+       <meta name="viewport" content="width=device-width, initial-scale=1.0">
+       <title>The Forest of Disconnect Journey</title>
+       <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
+       <script src="characters.js" defer></script>
+       <script src="sketch.js" defer></script>
+       <link rel="stylesheet" href="styles.css">
+   </head>
+   <body>
+       <div id="app-container">
+           <aside id="character-menu"></aside>
+           <main id="app-content">
+               <h1>The Forest of Disconnect Journey</h1>
+               <div id="navigation">
+                   <button id="prev-btn">Previous</button>
+                   <button id="next-btn">Next</button>
+               </div>
+               <div id="story-nodes">
+                   <img src="lina.svg" alt="Lina" class="character-node" data-audio="audio/chapter_1_lina.mp3">
+                   <img src="kai.svg" alt="Kai" class="character-node" data-audio="audio/chapter_2_kai.mp3">
+                   <img src="mara.svg" alt="Mara" class="character-node" data-audio="audio/chapter_3_mara.mp3">
+                   <img src="tomas.svg" alt="Tomas" class="character-node" data-audio="audio/chapter_4_tomas.mp3">
+                   <img src="eli.svg" alt="Eli" class="character-node" data-audio="audio/chapter_5_eli.mp3">
+                   <img src="sana.svg" alt="Sana" class="character-node" data-audio="audio/chapter_6_sana.mp3">
+                   <img src="narrator.svg" alt="Narrator" class="character-node" data-audio="audio/narration_intro.mp3">
+               </div>
+               <section id="reflection-stop" style="display: none;">
+                   <h2>Reflection Stop</h2>
+                   <p>Why might the travelers hesitate to enter the Forest? Share your thoughts.</p>
+                   <button id="continue-btn">Continue Journey</button>
+               </section>
+               <p id="story-text">Embark on an interactive journey to find connection.</p> <!-- Simplified text -->
+           </main>
+       </div>
+       <script>
+           document.getElementById('prev-btn').addEventListener('click', () => alert('Previous chapter'));
+           document.getElementById('next-btn').addEventListener('click', () => {
+               document.getElementById('reflection-stop').style.display = 'block';
+               document.getElementById('story-text').style.display = 'none';
+           });
+           document.getElementById('continue-btn').addEventListener('click', () => {
+               document.getElementById('reflection-stop').style.display = 'none';
+               document.getElementById('story-text').style.display = 'block';
+           });
+       </script>
+   </body>
+   </html>
