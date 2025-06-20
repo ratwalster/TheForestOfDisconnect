@@ -1,0 +1,89 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Forest of Disconnect</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
+    <script src="characters.js" defer></script>
+    <script src="sketch.js" defer></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app-container">
+        <aside id="character-menu"></aside>
+        <main id="app-content">
+            <h1>The Forest of Disconnect Journey</h1>
+            <div id="navigation">
+                <button id="prev-btn">Previous</button>
+                <button id="next-btn">Next</button>
+            </div>
+            <div id="story-nodes">
+                <img src="lina.svg" alt="Lina" class="character-node" data-audio="audio/chapter_1_lina.mp3">
+                <img src="kai.svg" alt="Kai" class="character-node" data-audio="audio/chapter_2_kai.mp3">
+                <img src="mara.svg" alt="Mara" class="character-node" data-audio="audio/chapter_3_mara.mp3">
+                <img src="tomas.svg" alt="Tomas" class="character-node" data-audio="audio/chapter_4_tomas.mp3">
+                <img src="eli.svg" alt="Eli" class="character-node" data-audio="audio/chapter_5_eli.mp3">
+                <img src="sana.svg" alt="Sana" class="character-node" data-audio="audio/chapter_6_sana.mp3">
+                <img src="narrator.svg" alt="Narrator" class="character-node" data-audio="audio/narration_intro.mp3">
+            </div>
+            <section id="reflection-stop" style="display: none;">
+                <h2>Reflection Stop</h2>
+                <p>Why might the travelers hesitate to enter the Forest? Share your thoughts.</p>
+                <button id="continue-btn">Continue Journey</button>
+            </section>
+            <p id="story-text">Embark on an interactive journey to find connection. Click a character to hear their story.</p>
+        </main>
+    </div>
+    <script>
+        document.getElementById('prev-btn').addEventListener('click', () => alert('Previous chapter'));
+        document.getElementById('next-btn').addEventListener('click', () => {
+            document.getElementById('reflection-stop').style.display = 'block';
+            document.getElementById('story-text').style.display = 'none';
+        });
+        document.getElementById('continue-btn').addEventListener('click', () => {
+            document.getElementById('reflection-stop').style.display = 'none';
+            document.getElementById('story-text').style.display = 'block';
+        });
+    </script>
+</body>
+</html>
