@@ -57,10 +57,12 @@
         function exportOptIns() {
             const optIns = JSON.parse(localStorage.getItem('optIns') || '[]');
             if (optIns.length > 0) {
-                const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(optIns));
+                // Export only the latest entry
+                const latestOptIn = optIns[optIns.length - 1];
+                const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(latestOptIn));
                 const downloadAnchor = document.createElement('a');
                 downloadAnchor.setAttribute('href', dataStr);
-                downloadAnchor.setAttribute('download', 'optins.json');
+                downloadAnchor.setAttribute('download', 'my-optin.json');
                 document.body.appendChild(downloadAnchor);
                 downloadAnchor.click();
                 document.body.removeChild(downloadAnchor);
