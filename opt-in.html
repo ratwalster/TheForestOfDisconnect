@@ -11,7 +11,6 @@
         button { padding: 5px 10px; }
         #success { color: green; display: none; margin-top: 10px; }
         #error { color: red; display: none; margin-top: 10px; }
-        .export-btn { margin-left: 10px; }
     </style>
 </head>
 <body>
@@ -27,7 +26,7 @@
         <input type="tel" id="phone" name="phone" placeholder="+1XXXXXXXXXX" required pattern="\+1[0-9]{10}">
         <button type="submit">Submit</button>
     </form>
-    <div id="success">Thank you for opting in! Your data is stored locally for now. <button class="export-btn" onclick="exportOptIns()">Export Data</button></div>
+    <div id="success">Thank you for opting in! Your data is stored locally for now.</div>
     <div id="error">Invalid input. Please provide a valid phone number and consent.</div>
     <p>For privacy details, visit our <a href="https://ratwalster.github.io/TheForestOfDisconnect/privacy.html">Privacy Policy</a>.</p>
 
@@ -51,23 +50,6 @@
             } else {
                 errorDiv.style.display = 'block';
                 successDiv.style.display = 'none';
-            }
-        }
-
-        function exportOptIns() {
-            const optIns = JSON.parse(localStorage.getItem('optIns') || '[]');
-            if (optIns.length > 0) {
-                // Export only the latest entry
-                const latestOptIn = optIns[optIns.length - 1];
-                const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(latestOptIn));
-                const downloadAnchor = document.createElement('a');
-                downloadAnchor.setAttribute('href', dataStr);
-                downloadAnchor.setAttribute('download', 'my-optin.json');
-                document.body.appendChild(downloadAnchor);
-                downloadAnchor.click();
-                document.body.removeChild(downloadAnchor);
-            } else {
-                alert('No opt-in data to export.');
             }
         }
     </script>
