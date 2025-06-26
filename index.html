@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Storybook: The Forest of Disconnect</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+        .scene-container {
+            transition: opacity 0.5s ease-in-out;
+        }
+        .bomb {
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle at 50% 50%, #EF4444 40%, transparent 45%),
+                        radial-gradient(circle at 10% 20%, #EF4444 5px, transparent 6px),
+                        radial-gradient(circle at 90% 20%, #EF4444 5px, transparent 6px),
+                        radial-gradient(circle at 50% 90%, #EF4444 5px, transparent 6px),
+                        radial-gradient(circle at 10% 80%, #EF4444 5px, transparent 6px),
+                        radial-gradient(circle at 90% 80%, #EF4444 5px, transparent 6px);
+            border: 2px solid #EF4444;
+            border-radius: 50%;
+            position: relative;
+            animation: pulse-red 1.5s infinite;
+            box-shadow: 0 0 10px 5px rgba(239, 68, 68, 0.5);
+            transition: all 0.5s ease-in-out;
+        }
+        .bomb-dissolved {
+            background: radial-gradient(circle at 50% 50%, #FACC15 10%, transparent 20%),
+                        radial-gradient(circle at 20% 40%, transparent 0, transparent 0),
+                        radial-gradient(circle at 80% 60%, transparent 0, transparent 0),
+                        radial-gradient(circle at 40% 10%, transparent 0, transparent 0),
+                        radial-gradient(circle at 60% 90%, transparent 0, transparent 0);
+            animation: none;
+            transform: scale(0);
+            opacity: 0;
+            border: none;
+            box-shadow: none;
+        }
+        .bomb-softened {
+            background: radial-gradient(circle at 50% 50%, #FACC15 40%, transparent 45%),
+                        radial-gradient(circle at 10% 20%, #FACC15 5px, transparent 6px),
+                        radial-gradient(circle at 90% 20%, #FACC15 5px, transparent 6px),
+                        radial-gradient(circle at 50% 90%, #FACC15 5px, transparent 6px),
+                        radial-gradient(circle at 10% 80%, #FACC15 5px, transparent 6px),
+                        radial-gradient(circle at 90% 80%, #FACC15 5px, transparent 6px);
+            border: 2px solid #FACC15;
+            animation: pulse-yellow 2.5s infinite;
+            box-shadow: 0 0 15px 8px rgba(250, 204, 21, 0.6);
+        }
+        @keyframes pulse-red {
+            0% { transform: scale(0.95); box-shadow: 0 0 10px 5px rgba(239, 68, 68, 0.5); }
+            70% { transform: scale(1.05); box-shadow: 0 0 20px 10px rgba(239, 68, 68, 0.7); }
+            100% { transform: scale(0.95); box-shadow: 0 0 10px 5px rgba(239, 68, 68, 0.5); }
+        }
+        @keyframes pulse-yellow {
+            0% { transform: scale(0.98); box-shadow: 0 0 15px 8px rgba(250, 204, 21, 0.5); }
+            70% { transform: scale(1); box-shadow: 0 0 25px 12px rgba(250, 204, 21, 0.7); }
+            100% { transform: scale(0.98); box-shadow: 0 0 15px 8px rgba(250, 204, 21, 0.5); }
+        }
+        .forest-bg {
+            background-color: #F5F5F4;
+            background-image:
+                radial-gradient(circle at 15% 85%, #E7E5E4 2px, transparent 0),
+                radial-gradient(circle at 85% 15%, #E7E5E4 2px, transparent 0);
+            background-size: 40px 40px;
+            transition: filter 1s ease-in-out;
+        }
+        .forest-bg-darker {
+            filter: brightness(0.9);
+        }
+        .forest-bg-lighter {
+            filter: brightness(1.05);
+        }
+        .character-icon {
+            transition: all 0.3s ease-in-out;
+            border: 4px solid transparent;
+        }
+        .character-icon.active {
+            transform: scale(1.1);
+            border-color: #10B981;
+        }
+        #reflection-modal {
+            transition: opacity 0.5s ease-in-out;
+        }
+        #reflection-modal.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        @media (max-width: 640px) {
+            .character-icon {
+                width: 3rem;
+                height: 3rem;
+                font-size: 1.25rem;
+            }
+            #dialogue-box {
+                font-size: 1rem;
+            }
+        }
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+    </style>
+</head>
+<body class="bg-stone-100 text-stone-800 flex flex-col items-center justify-center h-screen p-4 forest-bg">
+
+    <div id="app" class="w-full max-w-4xl h-full bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl flex flex-col overflow-hidden ring-1 ring-stone-200">
+        
+        <header class="p-4 border-b border-stone-200 flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold text-stone-700">The Forest of Disconnect</h1>
+            <div class="flex items-center space-x-4">
+                <button id="audio-toggle-btn" class="p-2 bg-stone-200 text-stone-600 rounded-full hover:bg-stone-300 transition" aria-label="Toggle audio narration">
+                    <span id="audio-icon">🔊</span>
+                </button>
+                <div id="journeyMapContainer"></div>
+            </div>
+        </header>
+
+        <main id="scene-container" class="flex-grow p-6 md:p-8 flex items-center justify-center opacity-0 overflow-y-auto">
+            
+        </main>
+
+        <footer class="p-4 border-t border-stone-200 flex justify-between items-center space-x-4">
+            <button id="prev-btn" class="px-6 py-2 bg-stone-200 text-stone-600 rounded-full font-semibold hover:bg-stone-300 transition disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Previous scene">Previous</button>
+            <button id="play-pause-btn" class="px-4 py-2 bg-blue-200 text-stone-600 rounded-full font-semibold hover:bg-blue-300 transition disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Play or pause narration">
+                <span id="play-pause-icon">▶</span>
+            </button>
+            <button id="next-btn" class="px-6 py-2 bg-emerald-600 text-white rounded-full font-semibold hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed">Next</button>
+        </footer>
+        <audio id="audio-player" preload="none"></audio>
+    </div>
+    
+    <div id="reflection-modal" aria-label="Reflection modal" class="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-xl p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+            <h2 id="reflection-title" class="text-2xl font-bold text-stone-800 mb-4">Reflection Stop</h2>
+            <div id="reflection-content" class="text-stone-600 space-y-4"></div>
+            <button id="reflection-close-btn" class="mt-8 px-6 py-2 bg-emerald-600 text-white rounded-full font-semibold hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed">Continue Journey</button>
+        </div>
+    </div>
+
+<script>
+// IMPORTANT: Replace these paths with your actual audio file paths once they are available.
+// The SILENT_AUDIO_PLACEHOLDER was used for local testing to prevent "Failed to load" errors.
+// Example: audio: 'audio/intro_1.mp3'
+// For now, it will use the paths you had previously, assuming they are now live on your GitHub.
+const storyData = [
+    {
+        type: 'intro',
+        title: 'Welcome to the Journey',
+        text: 'This is an interactive journey through the Forest of Disconnect storybook. You will join five travelers as they learn to defuse the "emotional bombs" of cynicism and judgment to find connection. Click "Begin" to start.',
+        audio: 'audio/intro_1.mp3', 
+        showNext: true,
+        showPrev: false,
+    },
+    {
+        type: 'scene',
+        chapter: 1,
+        title: 'Entering the Forest',
+        bg: 'darker',
+        characters: ['Lina', 'Kai', 'Mara', 'Tomas', 'Sana', 'Eli'],
+        dialogue: [
+            { 
+                char: 'Narrator', 
+                text: 'In a vast land, there was a dense, misty place called the Forest of Disconnect. Five travelers arrived: Kai, who guarded his thoughts with sharp words; Mara, quick to voice her worries; Tomas, slow but wise; Sana, quiet but observant; and Eli, humming softly, seeking clarity. Their guide, Lina, held a glowing lantern and a map: Lina’s Compass of Connection.',
+                audio: 'audio/chapter1_narrator_1.mp3' 
+            },
+            { 
+                char: 'Lina', 
+                text: 'This forest holds *emotional bombs*—spiky barriers of cynicism and judgment that block our path to connection. Defusing them means softening their power with understanding. Will you join me with open minds and kind hearts?',
+                audio: 'audio/chapter1_lina_1.mp3' 
+            },
+            {
+                char: 'Narrator',
+                text: 'The travelers nodded, though some looked skeptical. Eli hummed softly, eyeing the foggy path. Lina smiled and shared the first rule: “We’ll create a Safe Zone by listening, speaking kindly, and assuming good intentions.”',
+                audio: 'audio/chapter1_narrator_2.mp3'
+            },
+        ]
+    },
+    {
+        type: 'reflection',
+        chapter: 1,
+        questions: [
+            {
+                text: 'Why might the travelers feel hesitant to enter the forest?',
+                audio: 'audio/reflection_1_q1.mp3'
+            },
+            {
+                text: 'What does a “Safe Zone” mean to you in a group?',
+                audio: 'audio/reflection_1_q2.mp3'
+            }
+        ]
+    },
+    {
+        type: 'defusal',
+        chapter: 2,
+        title: 'The First Bomb: Cynicism',
+        bg: 'darker',
+        characters: ['Kai', 'Lina'],
+        bomb: { 
+            initial: true, 
+            softened: false, 
+            dissolved: false 
+        },
+        steps: [
+            {
+                char: 'Kai',
+                text: 'As the group walked, Kai kicked a stone and muttered, “This is pointless. We’ll never find the Clearing. It’s just a fairy tale.”',
+                audio: 'audio/chapter2_kai_1.mp3',
+                isBombTrigger: true
+            },
+            { 
+                prompt: 'Acknowledge Feelings',
+                char: 'Lina', 
+                text: '“I notice frustration in your words, Kai. Sounds like you’re doubting this journey can work. Does that feel right?”',
+                audio: 'audio/chapter2_lina_1.mp3' 
+            },
+            { 
+                prompt: 'Guess Needs',
+                char: 'Lina', 
+                text: 'Kai shrugged but didn’t snap back. Lina continued, “Sounds like you need to feel sure our effort won’t be wasted?”',
+                audio: 'audio/chapter2_lina_2.mp3',
+                softenBomb: true 
+            },
+            { 
+                prompt: 'Share & Invite',
+                char: 'Lina', 
+                text: 'Kai hesitated, then nodded slightly. Lina shared, “When I hear doubt, I feel a bit sad because I need hope for our group. Kai, what would make this journey feel less pointless to you?”',
+                audio: 'audio/chapter2_lina_3.mp3' 
+            },
+            { 
+                char: 'Kai', 
+                text: 'Kai mumbled, “Maybe if we knew the path was real.” Lina nodded. “Let’s check Lina’s Compass of Connection together and take one step at a time. How does that sound?”',
+                audio: 'audio/chapter2_kai_2.mp3' 
+            },
+            { 
+                char: 'Narrator', 
+                text: 'The spiky orb dissolved into a soft wisp of light. Kai’s tense shoulders relaxed, and he gave a small nod. The group moved forward, feeling a tiny spark of trust.',
+                audio: 'audio/chapter2_narrator_1.mp3',
+                dissolveBomb: true 
+            },
+        ]
+    },
+    {
+        type: 'reflection',
+        chapter: 2,
+        questions: [
+            {
+                text: 'How did Lina respond to Kai’s cynicism without arguing?',
+                audio: 'audio/reflection_2_q1.mp3'
+            },
+            {
+                text: 'What’s an example of a time you felt cynical? What helped you feel heard?',
+                audio: 'audio/reflection_2_q2.mp3'
+            }
+        ]
+    },
+    {
+        type: 'defusal',
+        chapter: 3,
+        title: 'The Judgment Trap',
+        bg: 'darker',
+        characters: ['Mara', 'Tomas', 'Lina'],
+        bomb: {
+            initial: true, 
+            softened: false, 
+            dissolved: false 
+        },
+        steps: [
+            {
+                char: 'Mara',
+                text: 'Deeper in the forest, Mara pointed at Tomas, who was walking slowly. “If he can’t keep up, we’ll never make it,” she said sharply.',
+                audio: 'audio/chapter3_mara_1.mp3',
+                isBombTrigger: true 
+            },
+            { 
+                prompt: 'Acknowledge & Guess Need',
+                char: 'Lina', 
+                text: '“Mara, I notice a strong worry in your words, maybe about our progress. Sounds like you need reassurance we’ll reach our goal?”',
+                audio: 'audio/chapter3_lina_1.mp3' 
+            },
+            { 
+                prompt: 'Check Impact',
+                char: 'Lina', 
+                text: 'Mara crossed her arms but nodded. Lina turned to Tomas. “Tomas, how did Mara’s words land on you?”',
+                audio: 'audio/chapter3_lina_2.mp3' 
+            },
+            {
+                char: 'Tomas',
+                text: 'Tomas sighed. “They make me feel like a burden. I need to feel valued, even if I’m slow.”',
+                audio: 'audio/chapter3_tomas_1.mp3',
+                softenBomb: true 
+            },
+            { 
+                prompt: 'Share & Reframe',
+                char: 'Lina', 
+                text: 'Lina nodded. “I feel a bit heavy hearing this because I need us all to feel included. This judgment shows how much we all want to succeed. Instead of blaming each other, can we face the disconnect as a team? What could help us move forward together?”',
+                audio: 'audio/chapter3_lina_3.mp3' 
+            },
+            { 
+                char: 'Narrator', 
+                text: 'Mara softened. “Maybe we could take breaks so Tomas can rest.” Tomas smiled. “I’d appreciate that.”',
+                audio: 'audio/chapter3_narrator_1.mp3'
+            },
+            { 
+                char: 'Narrator', 
+                text: 'The spiky orb dissolved into a soft wisp of light. Mara’s tight grip on her arms loosened, and she met Tomas’s gaze with a shy smile. The group agreed to walk at a pace that worked for all.',
+                audio: 'audio/chapter3_narrator_2.mp3',
+                dissolveBomb: true 
+            },
+        ]
+    },
+    {
+        type: 'reflection',
+        chapter: 3,
+        questions: [
+            {
+                text: 'How did Lina help Mara and Tomas understand each other’s needs?',
+                audio: 'audio/reflection_3_q1.mp3'
+            },
+            {
+                text: 'When have you judged someone? How could you reframe it to understand their needs?',
+                audio: 'audio/reflection_3_q2.mp3'
+            }
+        ]
+    },
+    {
+        type: 'defusal',
+        chapter: 4,
+        title: 'Building the Bridge',
+        bg: 'lighter',
+        characters: ['Kai', 'Eli', 'Lina', 'Sana'],
+        bomb: { 
+            initial: true, 
+            softened: false, 
+            dissolved: false 
+        },
+        steps: [
+            {
+                char: 'Narrator',
+                text: 'As days passed, more bombs appeared—grumbles, doubts, and sharp words. Each time, Lina used her Compass of Connection: acknowledge feelings, guess needs, share her heart, and invite curiosity. Slowly, the travelers copied her. One afternoon, Kai muttered, “This path’s getting us nowhere. I just don’t see the point anymore.”',
+                audio: 'audio/chapter4_narrator_1.mp3',
+                isBombTrigger: true
+            },
+            {
+                prompt: 'Acknowledge & Guess Need',
+                char: 'Eli',
+                text: 'Eli, who sought clarity, stepped forward. “Kai, I hear frustration. Am I hearing you right? Maybe you need to know we’re making progress?”',
+                audio: 'audio/chapter4_eli_1.mp3',
+                softenBomb: true 
+            },
+            {
+                prompt: 'Share & Invite',
+                char: 'Eli',
+                text: 'Kai nodded, surprised. Eli continued, “I feel a bit lost too, and I need to believe we’re moving forward. Could we check Lina’s Compass of Connection together, just to see our next step?”',
+                audio: 'audio/chapter4_eli_2.mp3'
+            },
+            {
+                char: 'Narrator',
+                text: 'Kai agreed. The spiky orb dissolved into a soft wisp of light. A quiet relief softened Kai’s frown, and a warmth spread through the group, their steps lighter. Lina smiled. “Eli just defused a bomb! Each time we listen and share, we build a stronger bridge.”',
+                audio: 'audio/chapter4_narrator_2.mp3',
+                dissolveBomb: true
+            },
+            {
+                char: 'Sana',
+                text: 'That evening, Sana whispered, “I feel safer now.”',
+                audio: 'audio/chapter4_sana_1.mp3'
+            }
+        ]
+    },
+    {
+        type: 'reflection',
+        chapter: 4,
+        questions: [
+            {
+                text: 'What small wins have you noticed in a group you’re part of?',
+                audio: 'audio/reflection_4_q1.mp3'
+            },
+            {
+                text: 'How can regular check-ins help a group stay connected?',
+                audio: 'audio/reflection_4_q2.mp3'
+            }
+        ]
+    },
+    {
+        type: 'scene',
+        chapter: 5,
+        title: 'The Clearing of Connection',
+        bg: 'lighter',
+        characters: ['Lina'],
+        dialogue: [
+            {
+                char: 'Narrator',
+                text: 'At last, the forest opened to a golden meadow—the Clearing of Connection. The air felt warm, and the travelers stood together, their faces glowing with relief and joy. A shared warmth filled their hearts, as if the forest’s weight had lifted.',
+                audio: 'audio/chapter5_narrator_1.mp3'
+            },
+            {
+                char: 'Lina',
+                text: '“We didn’t erase the bombs, but we learned to defuse them. Cynicism and judgment come from pain and unmet needs. By creating safety and understanding, we found our way here.”',
+                audio: 'audio/chapter5_lina_1.mp3'
+            },
+            {
+                char: 'Narrator',
+                text: 'The travelers vowed to share Lina’s Compass of Connection with others, knowing connection is a journey, not a race.',
+                audio: 'audio/chapter5_narrator_2.mp3'
+            },
+        ]
+    },
+    {
+        type: 'outro',
+        title: 'Your Journey Continues',
+        text: 'You have reached the Clearing of Connection. The lessons from Lina’s Compass are now yours to carry into your own "forests". How will you use these lessons in your life? You can use the Journey Map to revisit any part of the story.',
+        audio: 'audio/outro_1.mp3',
+        showNext: false,
+        showPrev: true,
+    }
+];
+
+const characterDetails = {
+    'Lina': { color: 'bg-emerald-200', text: 'text-emerald-800', initial: 'L' },
+    'Kai': { color: 'bg-sky-200', text: 'text-sky-800', initial: 'K' },
+    'Mara': { color: 'bg-rose-200', text: 'text-rose-800', initial: 'M' },
+    'Tomas': { color: 'bg-amber-200', text: 'text-amber-800', initial: 'T' },
+    'Eli': { color: 'bg-violet-200', text: 'text-violet-800', initial: 'E' },
+    'Sana': { color: 'bg-pink-200', text: 'text-pink-800', initial: 'S' },
+    'Narrator': { color: 'bg-stone-200', text: 'text-stone-800', initial: '🌳' },
+};
+
+let currentSceneIndex = 0;
+let currentDefusalStep = 0;
+let isAudioEnabled = true;
+
+const app = document.getElementById('app');
+const sceneContainer = document.getElementById('scene-container');
+const nextBtn = document.getElementById('next-btn');
+const prevBtn = document.getElementById('prev-btn');
+const audioToggleBtn = document.getElementById('audio-toggle-btn');
+const audioPlayPauseBtn = document.getElementById('play-pause-btn');
+const audioPlayer = document.getElementById('audio-player');
+const playPauseIcon = document.getElementById('play-pause-icon');
+const audioIcon = document.getElementById('audio-icon');
+const journeyMapContainer = document.getElementById('journeyMapContainer');
+const reflectionModal = document.getElementById('reflection-modal');
+const reflectionTitle = document.getElementById('reflection-title');
+const reflectionContent = document.getElementById('reflection-content');
+const reflectionCloseBtn = document.getElementById('reflection-close-btn');
+const forestBg = document.querySelector('.forest-bg');
+
+function createCharacterIcon(char) {
+    const details = characterDetails[char];
+    if (!details) return '';
+    return `<div class="character-icon w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center ${details.color} ${details.text} font-bold text-2xl shadow-md" data-char="${char}">${details.initial}</div>`;
+}
+
+function announceAudioState(message) {
+    const liveRegion = document.createElement('div');
+    liveRegion.setAttribute('aria-live', 'polite');
+    liveRegion.className = 'sr-only'; 
+    liveRegion.textContent = message;
+    document.body.appendChild(liveRegion);
+    setTimeout(() => liveRegion.remove(), 1000);
+}
+
+function playAudio(src) {
+    if (!isAudioEnabled) return;
+    audioPlayer.src = src;
+    audioPlayer.load(); // Ensure the audio is fully loaded
+    audioPlayer.play().then(() => {
+        playPauseIcon.textContent = '⏸';
+        announceAudioState('Audio playing');
+    }).catch(error => {
+        console.error('Audio playback error:', error);
+        const dialogueBox = document.getElementById('dialogue-box');
+        if (dialogueBox) {
+            const message = document.createElement('p');
+            message.className = 'text-sm text-stone-500 mt-2';
+            message.innerText = 'Audio unavailable, please read text.';
+            dialogueBox.appendChild(message);
+            setTimeout(() => {
+                if (dialogueBox.contains(message)) {
+                    dialogueBox.removeChild(message);
+                }
+            }, 2000);
+        }
+        playPauseIcon.textContent = '▶'; 
+        announceAudioState('Audio playback failed');
+    });
+}
+
+function pauseAudio() {
+    audioPlayer.pause();
+    playPauseIcon.textContent = '▶';
+    announceAudioState('Audio paused');
+}
+
+function toggleAudio() {
+    isAudioEnabled = !isAudioEnabled;
+    audioIcon.textContent = isAudioEnabled ? '🔊' : '🔇';
+    audioToggleBtn.setAttribute('aria-label', isAudioEnabled ? 'Disable audio narration' : 'Enable audio narration');
+    if (!isAudioEnabled) {
+        pauseAudio();
+    } else {
+        const currentScene = storyData[currentSceneIndex];
+        if (currentScene.type === 'intro' || currentScene.type === 'outro') {
+            if (currentScene.audio) playAudio(currentScene.audio);
+        } else if (currentScene.type === 'scene') {
+            const currentDialogue = currentScene.dialogue[currentDefusalStep]; 
+            if (currentDialogue && currentDialogue.audio) playAudio(currentDialogue.audio);
+        } else if (currentScene.type === 'defusal') {
+            const currentStep = currentScene.steps[currentDefusalStep];
+            if (currentStep && currentStep.audio) playAudio(currentStep.audio);
+        } else if (currentScene.type === 'reflection') {
+            if (currentScene.questions[0] && currentScene.questions[0].audio) playAudio(currentScene.questions[0].audio);
+        }
+    }
+    announceAudioState(`Audio ${isAudioEnabled ? 'enabled' : 'disabled'}`);
+}
+
+function renderScene() {
+    sceneContainer.style.opacity = 0;
+    pauseAudio(); 
+    
+    setTimeout(() => {
+        const scene = storyData[currentSceneIndex];
+        let html = '';
+        currentDefusalStep = 0; 
+
+        forestBg.classList.remove('forest-bg-darker', 'forest-bg-lighter');
+        if (scene.bg) {
+            forestBg.classList.add(`forest-bg-${scene.bg}`);
+        }
+        
+        switch (scene.type) {
+            case 'intro':
+            case 'outro':
+                html = `<div class="text-center max-w-lg mx-auto">
+                    <h2 class="text-3xl font-bold mb-4">${scene.title}</h2>
+                    <p class="text-lg text-stone-600">${scene.text}</p>
+                    ${scene.type === 'intro' ? '<button id="start-btn" class="mt-8 px-8 py-3 bg-emerald-600 text-white rounded-full font-bold text-lg hover:bg-emerald-700 transition">Begin</button>' : ''}
+                </div>`;
+                break;
+            case 'scene':
+                html = `<div class="w-full h-full flex flex-col items-center justify-center text-center">
+                    <h2 class="text-2xl md:text-3xl font-bold mb-6">${scene.title}</h2>
+                    <div class="flex items-center justify-center space-x-4 mb-8">
+                        ${scene.characters.map(createCharacterIcon).join('')}
+                    </div>
+                    <div id="dialogue-box" class="text-lg md:text-xl text-stone-700 max-w-2xl bg-white/50 p-6 rounded-lg shadow" aria-live="polite"></div>
+                </div>`;
+                break;
+            case 'defusal':
+                 html = `<div class="w-full h-full flex flex-col items-center justify-around">
+                    <h2 class="text-2xl md:text-3xl font-bold text-center">${scene.title}</h2>
+                    <div class="flex items-center justify-center space-x-4">
+                        ${scene.characters.map(createCharacterIcon).join('')}
+                    </div>
+                    <div id="bomb-container" class="my-4">
+                        <div id="bomb-visual" class="bomb"></div>
+                    </div>
+                    <div id="dialogue-box" class="text-lg md:text-xl text-stone-700 text-center max-w-2xl min-h-[6rem] bg-white/50 p-4 rounded-lg shadow" aria-live="polite"></div>
+                    <div id="defusal-prompts" class="flex flex-wrap justify-center gap-2 mt-4"></div>
+                </div>`;
+                break;
+        }
+
+        sceneContainer.innerHTML = html;
+        if(scene.type === 'scene') renderDialogue(scene.dialogue, 0);
+        else if(scene.type === 'defusal') renderDefusalStep();
+        else if(scene.type === 'intro') { 
+            if (scene.type === 'intro') {
+                document.getElementById('start-btn').onclick = nextScene;
+            }
+        } else if (scene.type === 'outro') { 
+             if (scene.audio) {
+                playAudio(scene.audio);
+            }
+        }
+        
+        updateNav();
+        sceneContainer.style.opacity = 1;
+        
+        if (scene.type === 'reflection') {
+            showReflectionModal(scene);
+        }
+
+    }, 500);
+}
+
+function renderDialogue(dialogues, index) {
+    if (index >= dialogues.length) {
+        nextBtn.disabled = false;
+        return;
+    }
+    const dialogueBox = document.getElementById('dialogue-box');
+    const dialogue = dialogues[index];
+    
+    dialogueBox.innerHTML = `<strong>${dialogue.char}:</strong> ${dialogue.text}`;
+    
+    document.querySelectorAll('.character-icon').forEach(icon => icon.classList.remove('active'));
+    if(characterDetails[dialogue.char]) {
+        document.querySelector(`.character-icon[data-char="${dialogue.char}"]`)?.classList.add('active');
+    }
+    
+    if (dialogue.audio) {
+        // Clear previous onended listeners to prevent conflicts
+        audioPlayer.onended = null;
+        playAudio(dialogue.audio);
+        audioPlayer.onended = () => {
+            setTimeout(() => renderDialogue(dialogues, index + 1), 500);
+        };
+    } else {
+        setTimeout(() => renderDialogue(dialogues, index + 1), 5000); // Increased timeout for fallback
+    }
+}
+
+function renderDefusalStep() {
+    const scene = storyData[currentSceneIndex];
+    const step = scene.steps[currentDefusalStep];
+    const dialogueBox = document.getElementById('dialogue-box');
+    const promptsContainer = document.getElementById('defusal-prompts');
+    const bomb = document.getElementById('bomb-visual');
+    
+    dialogueBox.innerHTML = `<strong>${step.char}:</strong> ${step.text}`;
+    
+    document.querySelectorAll('.character-icon').forEach(icon => icon.classList.remove('active'));
+    if(characterDetails[step.char]) {
+        document.querySelector(`.character-icon[data-char="${step.char}"]`)?.classList.add('active');
+    }
+    
+    if (step.softenBomb) {
+        bomb.classList.add('bomb-softened');
+    }
+    if (step.dissolveBomb) {
+        bomb.classList.add('bomb-dissolved');
+    }
+
+    promptsContainer.innerHTML = '';
+    
+    const nextStep = scene.steps[currentDefusalStep + 1];
+    if (nextStep && nextStep.prompt) {
+        const button = document.createElement('button');
+        button.className = 'px-4 py-2 bg-sky-600 text-white rounded-full font-semibold hover:bg-sky-700 transition';
+        button.innerText = nextStep.prompt;
+        button.onclick = () => {
+            pauseAudio(); 
+            currentDefusalStep++;
+            renderDefusalStep();
+        };
+        promptsContainer.appendChild(button);
+        nextBtn.disabled = true;
+    } else if (currentDefusalStep < scene.steps.length - 1) {
+        if (step.audio) {
+            playAudio(step.audio);
+            audioPlayer.onended = () => {
+                 setTimeout(() => {
+                    currentDefusalStep++;
+                    renderDefusalStep();
+                }, 500);
+            };
+        } else {
+            setTimeout(() => {
+                currentDefusalStep++;
+                renderDefusalStep();
+            }, 5000); // Increased timeout for fallback
+        }
+        nextBtn.disabled = true;
+    } else {
+        nextBtn.disabled = false;
+    }
+
+    if (step.audio && (!nextStep || !nextStep.prompt)) { 
+        playAudio(step.audio);
+    } else if (step.audio && nextStep && nextStep.prompt) { 
+        playAudio(step.audio);
+    }
+}
+
+function showReflectionModal(scene) {
+    reflectionTitle.innerText = `Chapter ${scene.chapter} Reflection`;
+    reflectionContent.innerHTML = scene.questions.map(q => `<p>• ${q.text}</p>`).join('');
+    reflectionModal.classList.remove('hidden');
+    reflectionCloseBtn.disabled = true;
+    
+    if (scene.questions[0] && scene.questions[0].audio) { 
+        playAudio(scene.questions[0].audio);
+        audioPlayer.onended = () => {
+        };
+    } else {
+        pauseAudio(); 
+    }
+
+    setTimeout(() => { reflectionCloseBtn.disabled = false; }, 3000);
+}
+
+function hideReflectionModal() {
+    pauseAudio(); 
+    reflectionModal.classList.add('hidden');
+    nextScene();
+}
+
+function updateNav() {
+    const scene = storyData[currentSceneIndex];
+    prevBtn.disabled = currentSceneIndex === 0;
+    nextBtn.disabled = currentSceneIndex === storyData.length - 1 || 
+                       (scene.type === 'scene' && currentDefusalStep < scene.dialogue.length) || 
+                       (scene.type === 'defusal' && currentDefusalStep < scene.steps.length) || 
+                       scene.type === 'reflection';
+
+    if (scene.showNext !== undefined) nextBtn.disabled = !scene.showNext;
+    if (scene.showPrev !== undefined) prevBtn.disabled = !scene.showPrev;
+    
+    const journeyMap = document.getElementById('journeyMap');
+    if (journeyMap) {
+        const currentChapter = scene.chapter || 0;
+        journeyMap.querySelectorAll('button').forEach(btn => {
+            btn.classList.remove('bg-emerald-600', 'text-white');
+            btn.classList.add('bg-stone-200', 'text-stone-600');
+            if (parseInt(btn.dataset.chapter) === currentChapter) {
+                btn.classList.add('bg-emerald-600', 'text-white');
+                btn.classList.remove('bg-stone-200', 'text-stone-600');
+            }
+        });
+    }
+}
+
+function createJourneyMap() {
+    const chapters = [...new Set(storyData.filter(s => s.chapter).map(s => s.chapter))];
+    let html = `<div id="journeyMap" class="flex items-center space-x-2">`;
+    html += `<span class="hidden md:inline font-semibold text-sm mr-2">Journey:</span>`;
+    chapters.forEach(chapter => {
+        const sceneIndex = storyData.findIndex(s => s.chapter === chapter);
+        html += `<button data-scene-index="${sceneIndex}" data-chapter="${chapter}" aria-label="Go to Chapter ${chapter}" tabindex="0" class="w-8 h-8 rounded-full text-sm font-bold transition bg-stone-200 text-stone-600 hover:bg-stone-300">${chapter}</button>`;
+    });
+    html += `</div>`;
+    journeyMapContainer.innerHTML = html;
+
+    journeyMapContainer.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', () => {
+            pauseAudio(); 
+            currentSceneIndex = parseInt(btn.dataset.sceneIndex);
+            renderScene();
+        });
+    });
+}
+
+function nextScene() {
+    if (currentSceneIndex < storyData.length - 1) {
+        pauseAudio(); 
+        currentSceneIndex++;
+        renderScene();
+    }
+}
+
+function prevScene() {
+    if (currentSceneIndex > 0) {
+        pauseAudio(); 
+        currentSceneIndex--;
+        renderScene();
+    }
+}
+
+// Keyboard controls for accessibility
+document.addEventListener('keydown', (e) => {
+    if (e.key === ' ' && !e.target.tagName.match(/INPUT|TEXTAREA/)) {
+        e.preventDefault();
+        if (audioPlayer.paused && isAudioEnabled) {
+            audioPlayer.play().catch(e => console.error("Play prevented:", e));
+            playPauseIcon.textContent = '⏸';
+            announceAudioState('Audio playing');
+        } else {
+            pauseAudio();
+        }
+    } else if (e.key.toLowerCase() === 'a' && !e.target.tagName.match(/INPUT|TEXTAREA/)) {
+        toggleAudio();
+    }
+});
+
+// Attach event listeners after function definitions
+nextBtn.addEventListener('click', () => {
+    if (nextBtn.disabled && storyData[currentSceneIndex].type === 'defusal' && currentDefusalStep < storyData[currentSceneIndex].steps.length - 1) {
+        const dialogueBox = document.getElementById('dialogue-box');
+        const existingMessage = dialogueBox.querySelector('.temp-message');
+        if (!existingMessage) {
+            const message = document.createElement('p');
+            message.className = 'text-sm text-stone-500 mt-2 temp-message';
+            message.innerText = 'Choose a defusal step to continue.';
+            dialogueBox.appendChild(message);
+            setTimeout(() => {
+                if (dialogueBox.contains(message)) {
+                    dialogueBox.removeChild(message);
+                }
+            }, 2000);
+        }
+    } else {
+        nextScene();
+    }
+});
+
+prevBtn.addEventListener('click', prevScene);
+audioToggleBtn.addEventListener('click', toggleAudio);
+audioPlayPauseBtn.addEventListener('click', () => {
+    if (audioPlayer.paused && isAudioEnabled) {
+        playAudio(audioPlayer.src); 
+    } else {
+        pauseAudio();
+    }
+});
+reflectionCloseBtn.addEventListener('click', hideReflectionModal);
+
+window.onload = () => {
+    createJourneyMap();
+    renderScene();
+};
+
+</script>
+</body>
+</html>
