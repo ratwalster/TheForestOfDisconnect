@@ -15,7 +15,7 @@ files = [
         "filename": "audio/intro_1.mp3",
         "voice": "Matthew",
         "language": "en-US",
-        "ssml": '<speak>This is an interactive journey through the Forest of Disconnect storybook.<break time="0.5s"/> You will join five travelers as they learn to defuse the <emphasis level="moderate">emotional bombs</emphasis> of cynicism and judgment to find connection.<break time="0.5s"/> Click "Begin" to start.</speak>'
+        "ssml": '<speak>This is an interactive journey through the forest of disconnect storybook.<break time="0.5s"/> You will join five travelers as they learn to defuse the <emphasis level="moderate">emotional bombs</emphasis> of cynicism and judgment to find connection.<break time="0.5s"/> Click "Begin" to start.</speak>'
     },
     {
         "filename": "audio/chapter1_narrator_1.mp3",
