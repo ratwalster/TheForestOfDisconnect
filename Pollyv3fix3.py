@@ -17,7 +17,7 @@ files = [
         "voice": "Matthew",
         "language": "en-US",
         # Removed <emphasis level="moderate">emotional bombs</emphasis>
-        "ssml": '<speak>This is an interactive journey through the Forest of Disconnect storybook.<break time="0.5s"/> You will join five travelers as they learn to defuse the emotional bombs of cynicism and judgment to find connection.<break time="0.5s"/> Click "Begin" to start.</speak>'
+        "ssml": '<speak>This is an interactive journey through the forest of disconnect storybook.<break time="0.5s"/> You will join five travelers as they learn to defuse the emotional bombs of cynicism and judgment to find connection.<break time="0.5s"/> Click "Begin" to start.</speak>'
     },
     {
         "filename": "audio/chapter1_lina_1.mp3",
