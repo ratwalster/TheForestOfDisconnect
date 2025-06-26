@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interactive Storybook: The Forest of Disconnect</title>
     <script src="https://cdn.tailwindcss.com"></script>
+<<<<<<< HEAD
     <!-- Chosen Palette: Earthy & Calm -->
     <!-- Application Structure Plan: The application is designed as a guided, scene-by-scene interactive journey. This structure transforms the linear story into an engaging experience. Instead of passive scrolling, users click 'Next' to progress through narrative scenes. The core interactions are the 'Bomb Defusal' scenarios, where users must click on communication principles (e.g., 'Acknowledge Feelings') to reveal the dialogue and visually 'defuse' an animated 'bomb'. This active participation reinforces the story's lessons. A persistent 'Journey Map' allows non-linear navigation, so users can revisit key concepts. This design was chosen to make the story's lessons more memorable and tangible than a static text document could achieve. -->
     <!-- Visualization & Content Choices: 
@@ -16,6 +17,8 @@
         - Audio Narration: Goal: Enhance accessibility and immersion. Method: HTML5 `<audio>` element dynamically updated. Interaction: Automatic playback, manual play/pause, and global toggle buttons. Justification: Supports auditory learners and provides a richer narrative experience.
     -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+=======
+>>>>>>> master
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
         body {
@@ -487,6 +490,10 @@ function announceAudioState(message) {
 function playAudio(src) {
     if (!isAudioEnabled) return;
     audioPlayer.src = src;
+<<<<<<< HEAD
+=======
+    audioPlayer.load(); // Ensure the audio is fully loaded
+>>>>>>> master
     audioPlayer.play().then(() => {
         playPauseIcon.textContent = '⏸';
         announceAudioState('Audio playing');
@@ -624,12 +631,23 @@ function renderDialogue(dialogues, index) {
     }
     
     if (dialogue.audio) {
+<<<<<<< HEAD
         playAudio(dialogue.audio);
         audioPlayer.onended = () => { 
             setTimeout(() => renderDialogue(dialogues, index + 1), 500); 
         };
     } else {
         setTimeout(() => renderDialogue(dialogues, index + 1), 3500); 
+=======
+        // Clear previous onended listeners to prevent conflicts
+        audioPlayer.onended = null;
+        playAudio(dialogue.audio);
+        audioPlayer.onended = () => {
+            setTimeout(() => renderDialogue(dialogues, index + 1), 500);
+        };
+    } else {
+        setTimeout(() => renderDialogue(dialogues, index + 1), 5000); // Increased timeout for fallback
+>>>>>>> master
     }
 }
 
@@ -681,7 +699,11 @@ function renderDefusalStep() {
             setTimeout(() => {
                 currentDefusalStep++;
                 renderDefusalStep();
+<<<<<<< HEAD
             }, 3500);
+=======
+            }, 5000); // Increased timeout for fallback
+>>>>>>> master
         }
         nextBtn.disabled = true;
     } else {
