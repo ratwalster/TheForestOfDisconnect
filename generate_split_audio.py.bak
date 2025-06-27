@@ -1,0 +1,104 @@
+import boto3
+import os
+
+output_directory = "audio"
+if not os.path.exists(output_directory):
+    os.makedirs(output_directory)
+
+polly = boto3.client('polly', region_name='us-east-1')
+
+audio_files = [
+    {
+        "filename": "audio/chapter1_narrator_2.mp3",
+        "voice": "Matthew",
+        "language": "en-US",
+        "ssml": '<speak>The travelers nodded, though some looked skeptical.<break time="0.4s"/> Eli hummed softly, eyeing the foggy path.</speak>',
+        "notes": "Gentle tone; pause for reflection."
+    },
+    {
+        "filename": "audio/chapter1_lina_2.mp3",
+        "voice": "Joanna",
+        "language": "en-US",
+        "ssml": '<speak><prosody volume="soft">Lina smiled and shared the first rule: “We’ll create a Safe Zone by listening, speaking kindly, and assuming good intentions.”</prosody></speak>',
+        "notes": "Soften Lina’s rule for warmth."
+    },
+    {
+        "filename": "audio/chapter2_kai_2.mp3",
+        "voice": "Brian",
+        "language": "en-US",
+        "ssml": '<speak><prosody rate="1.0" pitch="-5%">Kai mumbled, <prosody volume="soft">Maybe if we knew the path was real.</prosody></speak>',
+        "notes": "Slightly higher pitch to show softening, soft volume for mumbling."
+    },
+    {
+        "filename": "audio/chapter2_lina_4.mp3",
+        "voice": "Joanna",
+        "language": "en-US",
+        "ssml": '<speak><prosody rate="0.9">Lina nodded.<break time="0.3s"/> Let’s check <say-as interpret-as="characters">Lina’s Compass of Connection</say-as> together and take one step at a time.<break time="0.4s"/> How does that sound?</prosody></speak>',
+        "notes": "Empathetic, slower pace for invitation."
+    },
+    {
+        "filename": "audio/chapter3_mara_2.mp3",
+        "voice": "Kendra",
+        "language": "en-US",
+        "ssml": '<speak><prosody rate="1.1" pitch="+10%">Mara softened.<break time="0.4s"/> <prosody volume="soft">Maybe we could take breaks so Tomas can rest.</prosody></speak>',
+        "notes": "Softer tone for resolution, high pitch for Mara’s assertiveness."
+    },
+    {
+        "filename": "audio/chapter3_tomas_2.mp3",
+        "voice": "Joey",
+        "language": "en-US",
+        "ssml": '<speak><prosody rate="0.8" pitch="-10%">Tomas smiled.<break time="0.3s"/> <prosody volume="soft">I’d appreciate that.</prosody></speak>',
+        "notes": "Slow, deep; soft volume for warmth."
+    },
+    {
+        "filename": "audio/chapter3_narrator_1.mp3",
+        "voice": "Matthew",
+        "language": "en-US",
+        "ssml": '<speak>The group agreed to walk at a pace that worked for all.</speak>',
+        "notes": "Warm tone for resolution."
+    },
+    {
+        "filename": "audio/chapter4_narrator_2.mp3",
+        "voice": "Matthew",
+        "language": "en-US",
+        "ssml": '<speak>Kai agreed.<break time="0.4s"/> The spiky orb dissolved into a soft wisp of light.<break time="0.7s"/> A quiet relief softened Kai’s frown, and a warmth spread through the group, their steps lighter.</speak>',
+        "notes": "Dramatic pause after ‘light,’ warm tone."
+    },
+    {
+        "filename": "audio/chapter4_lina_3.mp3",
+        "voice": "Joanna",
+        "language": "en-US",
+        "ssml": '<speak><prosody rate="0.9" volume="soft">Lina smiled.<break time="0.3s"/> Eli, you just defused a bomb!<break time="0.4s"/> Each time we listen and share, we build a stronger bridge.</prosody></speak>',
+        "notes": "Soft volume for warmth, empathetic tone."
+    }
+]
+
+for file_info in audio_files:
+    try:
+        print(f"DEBUG: Processing {file_info['filename']}")
+        print(f"DEBUG: Using VoiceId: {file_info['voice']}, Engine: neural, SSML length: {len(file_info['ssml'])}")
+
+        response = polly.synthesize_speech(
+            Text=file_info["ssml"],
+            VoiceId=file_info["voice"],
+            OutputFormat='mp3',
+            TextType='ssml',
+            Engine='neural'
+        )
+
+        audio_stream = response.get('AudioStream')
+        if audio_stream:
+            with open(file_info["filename"], 'wb') as audio_file:
+                audio_file.write(audio_stream.read())
+            print(f"SUCCESS: Generated {file_info['filename']}")
+        else:
+            print(f"ERROR: No 'AudioStream' in response for {file_info['filename']}")
+
+    except Exception as e:
+        print(f"CRITICAL ERROR: {file_info['filename']}: An unhandled error occurred: {e}")
+
+print("\n--- Summary of Failures ---")
+if all(os.path.exists(file_info["filename"]) for file_info in audio_files):
+    print("All audio files generated successfully!")
+else:
+    print("Some audio files failed to generate. Check logs above.")
